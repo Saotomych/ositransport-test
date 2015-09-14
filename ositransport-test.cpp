@@ -182,9 +182,34 @@ void OsiTransportTest::slotIllegalClassMember(QString strErr)
 	checkIllegalClassMbr = true;
 }
 
+void OsiTransportTest::run()
+{
+    // Do processing here
+	OsiTransportTest::Test1* test1 = new OsiTransportTest::Test1("Connection test");
+	test1->prepareTest();
+
+	CppUnit::TextTestRunner runner;
+	runner.addTest(test1);
+
+	qDebug() << "Test 1 running";
+	runner.run();
+
+	std::ofstream outFile("testResult.xml");
+	CppUnit::XmlOutputter outputer(&runner.result(), outFile);
+	outputer.write();
+
+    emit finished();
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
+    OsiTransportTest *test = OsiTransportTest::getMainTest(&a);
+
+    QObject::connect(test, SIGNAL(finished()), &a, SLOT(quit()));
+
+    QTimer::singleShot(0, test, SLOT(run()));
 
     return a.exec();
 }

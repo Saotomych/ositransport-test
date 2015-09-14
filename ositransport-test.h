@@ -17,12 +17,15 @@
 #include "../ositransport/cconnectionlistener.h"
 #include "../ositransport/socketfactory.h"
 
+#include <QTimer>
+
 class OsiTransportTest: public QObject
 {
 
 	Q_OBJECT
 
-	OsiTransportTest():
+	OsiTransportTest(QObject *parent = 0) :
+		QObject(parent),
 		pServer(nullptr),
 		pClient(nullptr),
 		pConnection(nullptr),
@@ -51,11 +54,14 @@ public:
 
 	static const char testData[];
 
-	static OsiTransportTest* getMainTest() {
+	static OsiTransportTest* getMainTest(QObject *parent = 0) {
 		static OsiTransportTest* pthis = nullptr;
 		if (pthis == nullptr)
 		{
-			pthis = new OsiTransportTest();
+			if (parent)
+				pthis = new OsiTransportTest(parent);
+			else
+				throw std::invalid_argument("OsiTransportTest* getMainTest: QObject is nullptr when singletone constructed");
 		}
 		return pthis;
 	}
@@ -113,6 +119,10 @@ public slots:
 	void slotConnectError(QString strErr);
 	void slotIllegalClassMember(QString strErr);
 
+    void run();
+
+signals:
+    void finished();
 };
 
 #endif // OSITRANSPORT_H
