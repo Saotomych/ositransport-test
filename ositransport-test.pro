@@ -10,7 +10,6 @@ QT       += network
 
 QT       -= gui
 
-TARGET = ositransport-test
 CONFIG   += console
 CONFIG 	 += c++11
 CONFIG   -= app_bundle
@@ -30,9 +29,12 @@ HEADERS += ositransport-test.h
 CONFIG (debug, debug|release){
     OBJECTS_DIR = build/debug
 	LIBS += -L/home/alexey/workprjs/ositransport/bin -lositransportd -lcppunit -lgcov
+	DEFINES += DEBUG
+	TARGET = ositransport-testd	
 } else {
     OBJECTS_DIR = build/release
 	LIBS += -L/home/alexey/workprjs/ositransport/bin -lositransport -lcppunit -lgcov
+	TARGET = ositransport-test
 }
 
 CONFIG += debug_and_release build_all

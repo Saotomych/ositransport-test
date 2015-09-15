@@ -11,10 +11,10 @@
 #include <cppunit/XmlOutputter.h>
 
 #include "../ositransport/ositransport_global.h"
-#include "../ositransport/cservertsap.h"
-#include "../ositransport/cclienttsap.h"
-#include "../ositransport/cconnection.h"
-#include "../ositransport/cconnectionlistener.h"
+#include "../ositransport/servertsap.h"
+#include "../ositransport/clienttsap.h"
+#include "../ositransport/connection.h"
+#include "../ositransport/connectionlistener.h"
 #include "../ositransport/socketfactory.h"
 
 #include <QTimer>
@@ -103,14 +103,14 @@ public slots:
 	// server slots
 	void slotClientConnected(const CConnection* that);
 	void slotClientDisconnected(const CConnection* that);
-	void slotServerRcvTSdu(const CConnection* that);
+	void slotServerTSduReady(const CConnection* that);
 	void slotServerCRReady(const CConnection* that);
 	void slotServerIOError(QString str);
 
 	// client slots
 	void slotConnectionReady(const CConnection* that);
 	void slotConnectionClosed(const CConnection* that);
-	void slotTSReady(const CConnection* that);
+	void slotTSduReady(const CConnection* that);
 	void slotCRReady(const CConnection* that);
 	void slotIOError(QString str);
 
