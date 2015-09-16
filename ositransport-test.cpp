@@ -40,7 +40,7 @@ const char OsiTransportTest::testData[] = {
 						(char) 0x0f
 };
 
-void OsiTransportTest::Test1::prepareTest()
+void OsiTransportTest::startServer()
 {
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
@@ -54,6 +54,8 @@ void OsiTransportTest::Test1::prepareTest()
 	// Create server and start listening
 	qint32 port = 18982;
 	pTest->pServer = new CServerTSAP(port);
+	pTest->pServer->setMessageTimeout(500);
+	pTest->pServer->setMessageFragmentTimeout(500);
 	pTest->pConnectionListener = pTest->pServer->createServer();
 
 	// server slots
@@ -65,6 +67,12 @@ void OsiTransportTest::Test1::prepareTest()
 
 	pTest->pServer->startListening();
 
+}
+
+void OsiTransportTest::startClient()
+{
+	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
 	// Create client and start connection
 	pTest->pClient = new CClientTSAP(*CSocketFactory::getSocketFactory());
 
@@ -74,18 +82,22 @@ void OsiTransportTest::Test1::prepareTest()
 	pTest->connect(pTest->pClient, SIGNAL(signalIllegalClassMember(QString)), pTest, SLOT(slotIllegalClassMember(QString)));
 
 	pTest->pClient->setMaxTPDUSizeParam(7);
+	pTest->pClient->setMessageTimeout(1000);
+	pTest->pClient->setMessageFragmentTimeout(1000);
 
-	QHostAddress address(QHostAddress::LocalHost);
+	QHostAddress address("127.0.0.1");
+	qint32 port = 18982;
+
 	pTest->pConnection = pTest->pClient->createConnection(address, port);
 
 	// connection slots
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionReady(const CConnection*)), pTest, SLOT(slotConnectionReady(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionClosed(const CConnection*)), pTest, SLOT(slotConnectionClosed(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotTSduReady(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalCRReady(const CConnection*)), pTest, SLOT(slotCRReady(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalIOError(QString)), pTest, SLOT(slotIOError(QString)));
 
-	pTest->pConnection->startConnection();
+	pConnection->startConnection();
+
 }
 
 void OsiTransportTest::Test1::runTest()
@@ -168,12 +180,6 @@ void OsiTransportTest::slotTSduReady(const CConnection* that)
 
 }
 
-void OsiTransportTest::slotCRReady(const CConnection* that)
-{
-	qDebug() << "OsiTransportTest::slotCRReady";
-
-}
-
 void OsiTransportTest::slotIOError(QString str)
 {
 	qDebug() << "OsiTransportTest::slotIOError: " << str;
@@ -203,13 +209,24 @@ void OsiTransportTest::slotIllegalClassMember(QString strErr)
 	checkIllegalClassMbr = true;
 }
 
+void OsiTransportTest::prepare()
+{
+
+	test1 = new OsiTransportTest::Test1("Connection test");
+	test2 = new OsiTransportTest::Test2("Send test");
+	test3 = new OsiTransportTest::Test3("Receive test");
+
+	CServer* srv = new CServer(this);
+	CClient* clt = new CClient(this);
+
+	srv->start();
+	clt->start();
+
+}
+
 void OsiTransportTest::run()
 {
     // Do processing here
-	OsiTransportTest::Test1* test1 = new OsiTransportTest::Test1("Connection test");
-	test1->prepareTest();
-
-	QThread::sleep(1000);
 
 	CppUnit::TextTestRunner runner;
 	runner.addTest(test1);
@@ -221,7 +238,7 @@ void OsiTransportTest::run()
 	CppUnit::XmlOutputter outputer(&runner.result(), outFile);
 	outputer.write();
 
-    emit finished();
+	emit finished();
 }
 
 int main(int argc, char *argv[])
@@ -232,7 +249,8 @@ int main(int argc, char *argv[])
 
     QObject::connect(test, SIGNAL(finished()), &a, SLOT(quit()));
 
-    QTimer::singleShot(0, test, SLOT(run()));
+    QTimer::singleShot(0, test, SLOT(prepare()));
+    QTimer::singleShot(5000, test, SLOT(run()));
 
-    return a.exec();
+    return  a.exec();
 }

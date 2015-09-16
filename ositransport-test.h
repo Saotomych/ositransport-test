@@ -66,6 +66,37 @@ public:
 		return pthis;
 	}
 
+	// Start of server and client in QThreads
+	class CServer: public QThread
+	{
+		OsiTransportTest* m_test;
+	public:
+		CServer(OsiTransportTest *test): m_test(test) {}
+
+		void run()
+		{
+		    QObject::connect(m_test, SIGNAL(finished()), this, SLOT(quit()));
+			QTimer::singleShot(0, m_test, SLOT(startServer()));
+
+			exec();
+		}
+	};
+
+	class CClient: public QThread
+	{
+		OsiTransportTest* m_test;
+	public:
+		CClient(OsiTransportTest *test): m_test(test){}
+
+		void run()
+		{
+		    QObject::connect(m_test, SIGNAL(finished()), this, SLOT(quit()));
+			QTimer::singleShot(500, m_test, SLOT(startClient()));
+
+			exec();
+		}
+	};
+
 	// Test Classes
 	/*
 	 *  Class tests creation of connection client-server
@@ -74,7 +105,6 @@ public:
 	{
 	public:
 		Test1(const std::string str): TestCase(str) {}
-		void prepareTest();
 		void runTest();
 	};
 
@@ -98,6 +128,10 @@ public:
 		void runTest();
 	};
 
+	Test1*	test1;
+	Test2*	test2;
+	Test3*	test3;
+
 public slots:
 
 	// server slots
@@ -111,7 +145,6 @@ public slots:
 	void slotConnectionReady(const CConnection* that);
 	void slotConnectionClosed(const CConnection* that);
 	void slotTSduReady(const CConnection* that);
-	void slotCRReady(const CConnection* that);
 	void slotIOError(QString str);
 
 	// Client Errors
@@ -119,7 +152,10 @@ public slots:
 	void slotConnectError(QString strErr);
 	void slotIllegalClassMember(QString strErr);
 
+    void prepare();
     void run();
+	void startServer();
+	void startClient();
 
 signals:
     void finished();
