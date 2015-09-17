@@ -82,8 +82,8 @@ void OsiTransportTest::startClient()
 	pTest->connect(pTest->pClient, SIGNAL(signalIllegalClassMember(QString)), pTest, SLOT(slotIllegalClassMember(QString)));
 
 	pTest->pClient->setMaxTPDUSizeParam(7);
-	pTest->pClient->setMessageTimeout(1000);
-	pTest->pClient->setMessageFragmentTimeout(1000);
+	pTest->pClient->setMessageTimeout(5000);
+	pTest->pClient->setMessageFragmentTimeout(5000);
 
 	QHostAddress address("127.0.0.1");
 	qint32 port = 18982;
@@ -220,6 +220,7 @@ void OsiTransportTest::prepare()
 	CClient* clt = new CClient(this);
 
 	srv->start();
+	QThread::usleep(500);
 	clt->start();
 
 }

@@ -18,6 +18,7 @@
 #include "../ositransport/socketfactory.h"
 
 #include <QTimer>
+#include <QEventLoop>
 
 class OsiTransportTest: public QObject
 {
@@ -70,30 +71,37 @@ public:
 	class CServer: public QThread
 	{
 		OsiTransportTest* m_test;
+
 	public:
 		CServer(OsiTransportTest *test): m_test(test) {}
 
 		void run()
 		{
 		    QObject::connect(m_test, SIGNAL(finished()), this, SLOT(quit()));
-			QTimer::singleShot(0, m_test, SLOT(startServer()));
 
-			exec();
+		    m_test->startServer();
+
+//			QTimer::singleShot(0, m_test, SLOT(startServer()));
+			this->exec();
 		}
 	};
 
 	class CClient: public QThread
 	{
 		OsiTransportTest* m_test;
+
 	public:
 		CClient(OsiTransportTest *test): m_test(test){}
 
 		void run()
 		{
 		    QObject::connect(m_test, SIGNAL(finished()), this, SLOT(quit()));
-			QTimer::singleShot(500, m_test, SLOT(startClient()));
 
-			exec();
+		    m_test->startClient();
+
+//			QTimer::singleShot(500, m_test, SLOT(startClient()));
+
+			this->exec();
 		}
 	};
 
