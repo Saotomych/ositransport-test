@@ -19,6 +19,7 @@
 
 #include <QTimer>
 #include <QEventLoop>
+#include <QVector>
 
 class OsiTransportTest: public QObject
 {
@@ -81,7 +82,6 @@ public:
 
 		    m_test->startServer();
 
-//			QTimer::singleShot(0, m_test, SLOT(startServer()));
 			this->exec();
 		}
 	};
@@ -98,8 +98,6 @@ public:
 		    QObject::connect(m_test, SIGNAL(finished()), this, SLOT(quit()));
 
 		    m_test->startClient();
-
-//			QTimer::singleShot(500, m_test, SLOT(startClient()));
 
 			this->exec();
 		}

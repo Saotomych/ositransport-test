@@ -102,6 +102,8 @@ void OsiTransportTest::startClient()
 
 void OsiTransportTest::Test1::runTest()
 {
+	qDebug() << "Test1 running";
+
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
 	CPPUNIT_ASSERT_EQUAL_MESSAGE("Test1: checkClientConnected wrong", true, pTest->checkClientConnected);
@@ -114,12 +116,16 @@ void OsiTransportTest::Test1::runTest()
 
 void OsiTransportTest::Test2::runTest()
 {
+	qDebug() << "Test2 running";
+
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
 }
 
 void OsiTransportTest::Test3::runTest()
 {
+	qDebug() << "Test3 running";
+
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
 }
@@ -143,6 +149,9 @@ void OsiTransportTest::slotServerTSduReady(const CConnection* that)
 {
 	qDebug() << "OsiTransportTest::slotServerTSduReady";
 
+	QByteArray rcvData;
+	(const_cast<CConnection*>(that))->receive(rcvData);
+
 }
 
 void OsiTransportTest::slotServerCRReady(const CConnection* that)
@@ -165,6 +174,14 @@ void OsiTransportTest::slotConnectionReady(const CConnection* that)
 
 	checkClientConnected = true;
 
+	QVector<char> qdata(sizeof(OsiTransportTest::testData));
+	for (char c: OsiTransportTest::testData)
+	{
+		qdata.push_back(c);
+	}
+
+	(const_cast<CConnection*>(that))->send(qdata, (quint32)0, qdata.size());
+
 }
 
 void OsiTransportTest::slotConnectionClosed(const CConnection* that)
@@ -177,6 +194,9 @@ void OsiTransportTest::slotConnectionClosed(const CConnection* that)
 void OsiTransportTest::slotTSduReady(const CConnection* that)
 {
 	qDebug() << "OsiTransportTest::slotTSduReady";
+
+	QByteArray rcvData;
+	(const_cast<CConnection*>(that))->receive(rcvData);
 
 }
 
@@ -231,8 +251,8 @@ void OsiTransportTest::run()
 
 	CppUnit::TextTestRunner runner;
 	runner.addTest(test1);
+	runner.addTest(test2);
 
-	qDebug() << "Test 1 running";
 	runner.run();
 
 	std::ofstream outFile("testResult.xml");
@@ -251,7 +271,7 @@ int main(int argc, char *argv[])
     QObject::connect(test, SIGNAL(finished()), &a, SLOT(quit()));
 
     QTimer::singleShot(0, test, SLOT(prepare()));
-    QTimer::singleShot(5000, test, SLOT(run()));
+    QTimer::singleShot(500, test, SLOT(run()));
 
     return  a.exec();
 }
