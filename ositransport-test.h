@@ -34,6 +34,8 @@ class OsiTransportTest: public QObject
 		pConnectionListener(nullptr),
 		checkClientConnected(false),
 		checkClientErrorConnected(false),
+		checkClientErrorTransfer(false),
+		checkServerErrorTransfer(false),
 		checkServerConnected(false),
 		checkServerErrorConnected(false),
 		checkIllegalArg(false),
@@ -49,10 +51,15 @@ public:
 
 	bool checkClientConnected;
 	bool checkClientErrorConnected;
+	bool checkClientErrorTransfer;
+	bool checkServerErrorTransfer;
 	bool checkServerConnected;
 	bool checkServerErrorConnected;
 	bool checkIllegalArg;
 	bool checkIllegalClassMbr;
+
+	QByteArray m_serverRcvData;
+	QByteArray m_clientRcvData;
 
 	static const char testData[];
 
@@ -141,8 +148,8 @@ public:
 public slots:
 
 	// server slots
-	void slotClientConnected(const CConnection* that);
-	void slotClientDisconnected(const CConnection* that);
+	void slotServerClientConnected(const CConnection* that);
+	void slotServerClientDisconnected(const CConnection* that);
 	void slotServerTSduReady(const CConnection* that);
 	void slotServerCRReady(const CConnection* that);
 	void slotServerIOError(QString str);
@@ -150,8 +157,8 @@ public slots:
 	// client slots
 	void slotConnectionReady(const CConnection* that);
 	void slotConnectionClosed(const CConnection* that);
-	void slotTSduReady(const CConnection* that);
-	void slotIOError(QString str);
+	void slotClientTSduReady(const CConnection* that);
+	void slotClientIOError(QString str);
 
 	// Client Errors
 	void slotIllegalArgument(QString strErr);
@@ -162,6 +169,8 @@ public slots:
     void run();
 	void startServer();
 	void startClient();
+
+	void sendTestData(CConnection* that);
 
 signals:
     void finished();

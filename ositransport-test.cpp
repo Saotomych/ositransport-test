@@ -44,10 +44,9 @@ void OsiTransportTest::startServer()
 {
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
-	pTest->checkClientConnected = false;
-	pTest->checkClientErrorConnected = false;
 	pTest->checkServerConnected = false;
 	pTest->checkServerErrorConnected = false;
+	pTest->checkServerErrorTransfer = false;
 	pTest->checkIllegalArg = false;
 	pTest->checkIllegalClassMbr = false;
 
@@ -59,8 +58,8 @@ void OsiTransportTest::startServer()
 	pTest->pConnectionListener = pTest->pServer->createServer();
 
 	// server slots
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalConnected(const CConnection*)), pTest, SLOT(slotClientConnected(const CConnection*)));
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalDisconnected(const CConnection*)), pTest, SLOT(slotClientDisconnected(const CConnection*)));
+	pTest->connect(pTest->pConnectionListener, SIGNAL(signalConnected(const CConnection*)), pTest, SLOT(slotServerClientConnected(const CConnection*)));
+	pTest->connect(pTest->pConnectionListener, SIGNAL(signalDisconnected(const CConnection*)), pTest, SLOT(slotServerClientDisconnected(const CConnection*)));
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotServerTSduReady(const CConnection*)));
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalCRReady(const CConnection*)), pTest, SLOT(slotServerCRReady(const CConnection*)));
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalIOError(QString)), pTest, SLOT(slotServerIOError(QString)));
@@ -72,6 +71,10 @@ void OsiTransportTest::startServer()
 void OsiTransportTest::startClient()
 {
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+	pTest->checkClientConnected = false;
+	pTest->checkClientErrorConnected = false;
+	pTest->checkClientErrorTransfer = false;
 
 	// Create client and start connection
 	pTest->pClient = new CClientTSAP(*CSocketFactory::getSocketFactory());
@@ -93,16 +96,28 @@ void OsiTransportTest::startClient()
 	// connection slots
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionReady(const CConnection*)), pTest, SLOT(slotConnectionReady(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionClosed(const CConnection*)), pTest, SLOT(slotConnectionClosed(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotTSduReady(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalIOError(QString)), pTest, SLOT(slotIOError(QString)));
+	pTest->connect(pTest->pConnection, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotClientTSduReady(const CConnection*)));
+	pTest->connect(pTest->pConnection, SIGNAL(signalIOError(QString)), pTest, SLOT(slotClientIOError(QString)));
 
 	pConnection->startConnection();
 
 }
 
+void OsiTransportTest::sendTestData(CConnection* that)
+{
+	QVector<char> qdata;
+	qdata.reserve(sizeof(testData)/sizeof(testData[0]));
+	for (char c: testData)
+	{
+		qdata.push_back(c);
+	}
+
+	that->send(qdata, (quint32)0, qdata.size());
+}
+
 void OsiTransportTest::Test1::runTest()
 {
-	qDebug() << "Test1 running";
+	qDebug() << "Test1: Check connection";
 
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
@@ -116,41 +131,78 @@ void OsiTransportTest::Test1::runTest()
 
 void OsiTransportTest::Test2::runTest()
 {
-	qDebug() << "Test2 running";
+	qDebug() << "Test2: Check server side received data";
 
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Test2: Server side has error transfer", false, pTest->checkServerErrorTransfer);
+
+	qint32 expectedSize = sizeof(testData)/sizeof(testData[0]);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Test2: Check server size of received data wrong", expectedSize, pTest->m_serverRcvData.size());
+
+	QByteArray::Iterator dataIt = pTest->m_serverRcvData.begin();
+	for (char c: testData)
+	{
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("Test2: Check server side received data wrong", c, *dataIt);
+		dataIt++;
+	}
 
 }
 
 void OsiTransportTest::Test3::runTest()
 {
-	qDebug() << "Test3 running";
+	qDebug() << "Test3: Check client side received data";
 
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Test3: Client side has error transfer", false, pTest->checkClientErrorTransfer);
+
+	qint32 expectedSize = sizeof(testData)/sizeof(testData[0]);
+	CPPUNIT_ASSERT_EQUAL_MESSAGE("Test3: Check client size of received data wrong", expectedSize, pTest->m_clientRcvData.size());
+
+	QByteArray::Iterator dataIt = pTest->m_clientRcvData.begin();
+	for (char c: testData)
+	{
+		CPPUNIT_ASSERT_EQUAL_MESSAGE("Test3: Check client side received data wrong", c, *dataIt);
+		dataIt++;
+	}
 
 }
 
 // server slots
-void OsiTransportTest::slotClientConnected(const CConnection* that)
+void OsiTransportTest::slotServerClientConnected(const CConnection* that)
 {
-	qDebug() << "OsiTransportTest::slotClientConnected";
+	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
 	checkServerConnected = true;
 }
 
-void OsiTransportTest::slotClientDisconnected(const CConnection* that)
+void OsiTransportTest::slotServerClientDisconnected(const CConnection* that)
 {
-	qDebug() << "OsiTransportTest::slotClientDisconnected";
+	qDebug() << "OsiTransportTest::slotServerClientDisconnected";
 
 	checkServerConnected = false;
 }
 
 void OsiTransportTest::slotServerTSduReady(const CConnection* that)
 {
-	qDebug() << "OsiTransportTest::slotServerTSduReady";
 
-	QByteArray rcvData;
-	(const_cast<CConnection*>(that))->receive(rcvData);
+	if (checkServerConnected)
+	{
+		qDebug() << "OsiTransportTest::slotServerTSduReady";
+
+		CConnection* myconn = const_cast<CConnection*>(that);
+
+		QByteArray tempBuffer;
+		if ( (const_cast<CConnection*>(that))->receive(tempBuffer) == true)
+		{
+			m_serverRcvData = tempBuffer;
+		}
+
+		OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+		pTest->sendTestData(myconn);
+	}
 
 }
 
@@ -164,7 +216,7 @@ void OsiTransportTest::slotServerIOError(QString str)
 {
 	qDebug() << "OsiTransportTest::slotServerIOError: " << str;
 
-	checkClientErrorConnected = true;
+	checkServerErrorTransfer = true;
 }
 
 // client slots
@@ -174,14 +226,11 @@ void OsiTransportTest::slotConnectionReady(const CConnection* that)
 
 	checkClientConnected = true;
 
-	QVector<char> qdata(sizeof(OsiTransportTest::testData));
-	for (char c: OsiTransportTest::testData)
-	{
-		qdata.push_back(c);
-	}
+	CConnection* myconn = const_cast<CConnection*>(that);
 
-	(const_cast<CConnection*>(that))->send(qdata, (quint32)0, qdata.size());
+	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
+	pTest->sendTestData(myconn);
 }
 
 void OsiTransportTest::slotConnectionClosed(const CConnection* that)
@@ -191,20 +240,26 @@ void OsiTransportTest::slotConnectionClosed(const CConnection* that)
 	checkClientConnected = false;
 }
 
-void OsiTransportTest::slotTSduReady(const CConnection* that)
+void OsiTransportTest::slotClientTSduReady(const CConnection* that)
 {
-	qDebug() << "OsiTransportTest::slotTSduReady";
 
-	QByteArray rcvData;
-	(const_cast<CConnection*>(that))->receive(rcvData);
+	if (checkClientConnected)
+	{
+		qDebug() << "OsiTransportTest::slotClientTSduReady";
 
+		QByteArray tempBuffer;
+		if ( (const_cast<CConnection*>(that))->receive(tempBuffer) == true)
+		{
+			m_clientRcvData = tempBuffer;
+		}
+	}
 }
 
-void OsiTransportTest::slotIOError(QString str)
+void OsiTransportTest::slotClientIOError(QString str)
 {
-	qDebug() << "OsiTransportTest::slotIOError: " << str;
+	qDebug() << "OsiTransportTest::slotClientIOError: " << str;
 
-	checkClientErrorConnected = true;
+	checkClientErrorTransfer = true;
 }
 
 // Client Errors
@@ -252,6 +307,7 @@ void OsiTransportTest::run()
 	CppUnit::TextTestRunner runner;
 	runner.addTest(test1);
 	runner.addTest(test2);
+	runner.addTest(test3);
 
 	runner.run();
 
@@ -271,7 +327,7 @@ int main(int argc, char *argv[])
     QObject::connect(test, SIGNAL(finished()), &a, SLOT(quit()));
 
     QTimer::singleShot(0, test, SLOT(prepare()));
-    QTimer::singleShot(500, test, SLOT(run()));
+    QTimer::singleShot(1000, test, SLOT(run()));
 
     return  a.exec();
 }
