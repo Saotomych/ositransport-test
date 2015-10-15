@@ -20,7 +20,8 @@ TEMPLATE = app
 DESTDIR = bin
 VERSION = 0.0.0.0
 
-INCLUDEPATH += /home/alexey/workprjs/ositransport/bin
+INCLUDEPATH += /home/alexey/workprjs/ositransport
+INCLUDEPATH += $(JENKINS_HOME)/jobs/ositransport/workspace/include
 
 SOURCES += ositransport-test.cpp
 
@@ -28,12 +29,12 @@ HEADERS += ositransport-test.h
 
 CONFIG (debug, debug|release){
     OBJECTS_DIR = build/debug
-	LIBS += -L/home/alexey/workprjs/ositransport/bin -lositransportd -lcppunit -lgcov
+	LIBS += -L/home/alexey/workprjs/ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransportd -lcppunit -lgcov
 	DEFINES += DEBUG
 	TARGET = ositransport-testd	
 } else {
     OBJECTS_DIR = build/release
-	LIBS += -L/home/alexey/workprjs/ositransport/bin -lositransport -lcppunit -lgcov
+	LIBS += -L/home/alexey/workprjs/ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransport -lcppunit -lgcov
 	TARGET = ositransport-test
 }
 

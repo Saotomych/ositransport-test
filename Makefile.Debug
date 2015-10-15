@@ -14,10 +14,10 @@ CXX           = g++
 DEFINES       = -DDEBUG -DQT_NETWORK_LIB -DQT_CORE_LIB
 CFLAGS        = -m64 -pipe -g -Wall -W -D_REENTRANT -fPIE $(DEFINES)
 CXXFLAGS      = -m64 -pipe -g -std=c++0x -Wall -W -D_REENTRANT -fPIE $(DEFINES)
-INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I. -I../ositransport/bin -I/usr/include/qt5 -I/usr/include/qt5/QtNetwork -I/usr/include/qt5/QtCore -Idebug
+INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I. -I../ositransport -I$(JENKINS_HOME)/jobs/ositransport/workspace/include -I/usr/include/qt5 -I/usr/include/qt5/QtNetwork -I/usr/include/qt5/QtCore -Idebug
 LINK          = g++
 LFLAGS        = -m64
-LIBS          = $(SUBLIBS) -L/home/alexey/workprjs/ositransport/bin -lositransportd -lcppunit -lgcov -lQt5Network -L/usr/lib/x86_64-linux-gnu -lQt5Core -lpthread 
+LIBS          = $(SUBLIBS) -L/home/alexey/workprjs/ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransportd -lcppunit -lgcov -lQt5Network -L/usr/lib/x86_64-linux-gnu -lQt5Core -lpthread 
 AR            = ar cqs
 RANLIB        = 
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
@@ -286,6 +286,7 @@ debug/moc_ositransport-test.cpp: /usr/include/qt5/QtCore/QCoreApplication \
 		/usr/include/qt5/QtCore/QTimer \
 		/usr/include/qt5/QtCore/qtimer.h \
 		/usr/include/qt5/QtCore/qbasictimer.h \
+		/usr/include/qt5/QtCore/QEventLoop \
 		ositransport-test.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) $(INCPATH) -I/usr/include/c++/4.8 -I/usr/include/x86_64-linux-gnu/c++/4.8 -I/usr/include/c++/4.8/backward -I/usr/lib/gcc/x86_64-linux-gnu/4.8/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ositransport-test.h -o debug/moc_ositransport-test.cpp
 
@@ -413,7 +414,8 @@ build/debug/ositransport-test.o: ositransport-test.cpp ositransport-test.h \
 		../ositransport/clienttsap.h \
 		/usr/include/qt5/QtCore/QTimer \
 		/usr/include/qt5/QtCore/qtimer.h \
-		/usr/include/qt5/QtCore/qbasictimer.h
+		/usr/include/qt5/QtCore/qbasictimer.h \
+		/usr/include/qt5/QtCore/QEventLoop
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/debug/ositransport-test.o ositransport-test.cpp
 
 build/debug/moc_ositransport-test.o: debug/moc_ositransport-test.cpp 
