@@ -14,7 +14,7 @@ CXX           = g++
 DEFINES       = -DDEBUG -DQT_NETWORK_LIB -DQT_CORE_LIB
 CFLAGS        = -m64 -pipe -g -Wall -W -D_REENTRANT -fPIE $(DEFINES)
 CXXFLAGS      = -m64 -pipe -O0 -fprofile-arcs -ftest-coverage -fPIC -g -std=c++0x -Wall -W -D_REENTRANT -fPIE $(DEFINES)
-INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I. -I../ositransport -I$(JENKINS_HOME)/jobs/ositransport/workspace/include -I/usr/include/qt5 -I/usr/include/qt5/QtNetwork -I/usr/include/qt5/QtCore -Idebug
+INCPATH       = -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I. -I../ositransport -I$(JENKINS_HOME)/jobs/ositransport/workspace -I/usr/include/qt5 -I/usr/include/qt5/QtNetwork -I/usr/include/qt5/QtCore -Idebug
 LINK          = g++
 LFLAGS        = -m64
 LIBS          = $(SUBLIBS) -L../ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransportd -lcppunit -lgcov -lQt5Network -L/usr/lib/x86_64-linux-gnu -lQt5Core -lpthread 

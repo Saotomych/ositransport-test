@@ -21,7 +21,7 @@ DESTDIR = bin
 VERSION = 0.0.0.0
 
 INCLUDEPATH += ../ositransport
-INCLUDEPATH += $(JENKINS_HOME)/jobs/ositransport/workspace/include
+INCLUDEPATH += $(JENKINS_HOME)/jobs/ositransport/workspace
 
 SOURCES += ositransport-test.cpp
 
