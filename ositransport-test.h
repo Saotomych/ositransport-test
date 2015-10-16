@@ -10,12 +10,12 @@
 #include <cppunit/XmlOutputterHook.h>
 #include <cppunit/XmlOutputter.h>
 
-#include "../ositransport/ositransport_global.h"
-#include "../ositransport/servertsap.h"
-#include "../ositransport/clienttsap.h"
-#include "../ositransport/connection.h"
-#include "../ositransport/connectionlistener.h"
-#include "../ositransport/socketfactory.h"
+#include "ositransport_global.h"
+#include "servertsap.h"
+#include "clienttsap.h"
+#include "connection.h"
+#include "connectionlistener.h"
+#include "socketfactory.h"
 
 #include <QTimer>
 #include <QEventLoop>
