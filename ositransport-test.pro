@@ -20,22 +20,34 @@ TEMPLATE = app
 DESTDIR = bin
 VERSION = 0.0.0.0
 
-INCLUDEPATH += /home/alexey/workprjs/ositransport
+INCLUDEPATH += ../ositransport
 INCLUDEPATH += $(JENKINS_HOME)/jobs/ositransport/workspace/include
 
 SOURCES += ositransport-test.cpp
 
 HEADERS += ositransport-test.h
 
-CONFIG (debug, debug|release){
-    OBJECTS_DIR = build/debug
-	LIBS += -L/home/alexey/workprjs/ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransportd -lcppunit -lgcov
-	DEFINES += DEBUG
-	TARGET = ositransport-testd	
-} else {
-    OBJECTS_DIR = build/release
-	LIBS += -L/home/alexey/workprjs/ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransport -lcppunit -lgcov
-	TARGET = ositransport-test
+unix{
+	CONFIG (debug, debug|release){
+	    OBJECTS_DIR = build/debug
+		LIBS += -L../ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransportd -lcppunit -lgcov
+		DEFINES += DEBUG
+		TARGET = ositransport-testd
+		
+		QMAKE_CXXFLAGS_RELEASE -= -O
+		QMAKE_CXXFLAGS_RELEASE -= -O1
+		QMAKE_CXXFLAGS_RELEASE -= -O2
+		QMAKE_CXXFLAGS += -O0 -fprofile-arcs -ftest-coverage -fPIC
+			
+	} else {
+	    OBJECTS_DIR = build/release
+		LIBS += -L../ositransport/bin -L$(JENKINS_HOME)/jobs/ositransport/workspace/bin -lositransport -lcppunit
+		TARGET = ositransport-test
+		
+		QMAKE_CXXFLAGS_RELEASE += -fPIC
+	}
+}else{
+    TARGET = ositransport-test-notunix
 }
 
 CONFIG += debug_and_release build_all
