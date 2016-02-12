@@ -170,14 +170,14 @@ void OsiTransportTest::Test3::runTest()
 }
 
 // server slots
-void OsiTransportTest::slotServerClientConnected(const CConnection* that)
+void OsiTransportTest::slotServerClientConnected(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
 	checkServerConnected = true;
 }
 
-void OsiTransportTest::slotServerClientDisconnected(const CConnection* that)
+void OsiTransportTest::slotServerClientDisconnected(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerClientDisconnected";
 
@@ -206,7 +206,7 @@ void OsiTransportTest::slotServerTSduReady(const CConnection* that)
 
 }
 
-void OsiTransportTest::slotServerCRReady(const CConnection* that)
+void OsiTransportTest::slotServerCRReady(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerCRReady";
 
@@ -233,7 +233,7 @@ void OsiTransportTest::slotConnectionReady(const CConnection* that)
 	pTest->sendTestData(myconn);
 }
 
-void OsiTransportTest::slotConnectionClosed(const CConnection* that)
+void OsiTransportTest::slotConnectionClosed(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotConnectionClosed";
 
