@@ -105,7 +105,7 @@ void OsiTransportTest::startClient()
 
 void OsiTransportTest::sendTestData(CConnection* that)
 {
-	QVector<char> qdata;
+	QByteArray qdata;
 	qdata.reserve(sizeof(testData)/sizeof(testData[0]));
 	for (char c: testData)
 	{
