@@ -39,7 +39,10 @@ class OsiTransportTest: public QObject
 		checkServerConnected(false),
 		checkServerErrorConnected(false),
 		checkIllegalArg(false),
-		checkIllegalClassMbr(false)
+		checkIllegalClassMbr(false),
+		test1(nullptr),
+		test2(nullptr),
+		test3(nullptr)
 	{}
 
 public:
