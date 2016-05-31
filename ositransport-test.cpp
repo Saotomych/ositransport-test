@@ -184,17 +184,17 @@ void OsiTransportTest::slotServerClientDisconnected(const CConnection*)
 	checkServerConnected = false;
 }
 
-void OsiTransportTest::slotServerTSduReady(const CConnection* that)
+void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
 {
 
 	if (checkServerConnected)
 	{
 		qDebug() << "OsiTransportTest::slotServerTSduReady";
 
-		CConnection* myconn = const_cast<CConnection*>(that);
+		CConnection* myconn = const_cast<CConnection*>(pConnection);
 
 		QByteArray tempBuffer;
-		if ( (const_cast<CConnection*>(that))->receive(tempBuffer) == true)
+		if ( myconn->receive(tempBuffer) == true)
 		{
 			m_serverRcvData = tempBuffer;
 		}

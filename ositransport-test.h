@@ -1,9 +1,9 @@
-#include <QCoreApplication>
-
 #ifndef OSITRANSPORT_H
 #define OSITRANSPORT_H
 
 #define UNITTEST
+
+#include <QCoreApplication>
 
 #include <cppunit/TestCase.h>
 #include <cppunit/ui/text/TextTestRunner.h>
