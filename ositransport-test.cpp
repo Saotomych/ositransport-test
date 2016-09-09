@@ -64,6 +64,8 @@ void OsiTransportTest::startServer()
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalCRReady(const CConnection*)), pTest, SLOT(slotServerCRReady(const CConnection*)));
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalIOError(QString)), pTest, SLOT(slotServerIOError(QString)));
 
+	pTest->connect(pTest, SIGNAL(signalConnectAnswer(const CConnection*)), pTest->pConnectionListener, SLOT(slotConnectAnswer(const CConnection*)));
+
 	pTest->pServer->startListening();
 
 }
@@ -174,7 +176,7 @@ void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
-	(const_cast<CConnection*>(pconn))->listenForCR();
+	signalConnectAnswer(pconn);
 
 	checkServerConnected = true;
 }
@@ -296,9 +298,8 @@ void OsiTransportTest::prepare()
 	CServer* srv = new CServer(this);
 	CClient* clt = new CClient(this);
 
-	this->moveToThread(srv);
 	srv->start();
-	QThread::usleep(500);
+	QThread::msleep(500);
 	clt->start();
 
 }

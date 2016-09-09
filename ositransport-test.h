@@ -177,6 +177,8 @@ public slots:
 
 signals:
     void finished();
+
+    void signalConnectAnswer(const CConnection*);
 };
 
 #endif // OSITRANSPORT_H
