@@ -170,9 +170,11 @@ void OsiTransportTest::Test3::runTest()
 }
 
 // server slots
-void OsiTransportTest::slotServerClientConnected(const CConnection*)
+void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
+
+	(const_cast<CConnection*>(pconn))->listenForCR();
 
 	checkServerConnected = true;
 }
@@ -294,6 +296,7 @@ void OsiTransportTest::prepare()
 	CServer* srv = new CServer(this);
 	CClient* clt = new CClient(this);
 
+	this->moveToThread(srv);
 	srv->start();
 	QThread::usleep(500);
 	clt->start();
