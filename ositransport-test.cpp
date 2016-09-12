@@ -64,8 +64,6 @@ void OsiTransportTest::startServer()
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalCRReady(const CConnection*)), pTest, SLOT(slotServerCRReady(const CConnection*)));
 	pTest->connect(pTest->pConnectionListener, SIGNAL(signalIOError(QString)), pTest, SLOT(slotServerIOError(QString)));
 
-	pTest->connect(pTest, SIGNAL(signalConnectAnswer(const CConnection*)), pTest->pConnectionListener, SLOT(slotConnectAnswer(const CConnection*)));
-
 	pTest->pServer->startListening();
 
 }
@@ -172,11 +170,9 @@ void OsiTransportTest::Test3::runTest()
 }
 
 // server slots
-void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
+void OsiTransportTest::slotServerClientConnected(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
-
-	signalConnectAnswer(pconn);
 
 	checkServerConnected = true;
 }
@@ -191,21 +187,26 @@ void OsiTransportTest::slotServerClientDisconnected(const CConnection*)
 void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
 {
 
+	qDebug() << "OsiTransportTest::slotServerTSduReady, checkServerConnected = " << checkServerConnected;
+
 	if (checkServerConnected)
 	{
-		qDebug() << "OsiTransportTest::slotServerTSduReady";
 
 		CConnection* myconn = const_cast<CConnection*>(pConnection);
 
-		QByteArray tempBuffer;
-		if ( myconn->receive(tempBuffer) == true)
+		if ( myconn->receive(m_serverRcvData) == true)
 		{
-			m_serverRcvData = tempBuffer;
+			qDebug() << "OsiTransportTest::slotServerTSduReady: server data ready";
+
+			// Обработка данных и сброс буфера по окончании
+			OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+			pTest->sendTestData(myconn);
 		}
-
-		OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-		pTest->sendTestData(myconn);
+		else
+		{
+			qDebug() << "OsiTransportTest::slotServerTSduReady: server data is still not ready";
+		}
 	}
 
 }
@@ -251,10 +252,9 @@ void OsiTransportTest::slotClientTSduReady(const CConnection* that)
 	{
 		qDebug() << "OsiTransportTest::slotClientTSduReady";
 
-		QByteArray tempBuffer;
-		if ( (const_cast<CConnection*>(that))->receive(tempBuffer) == true)
+		if ( (const_cast<CConnection*>(that))->receive(m_clientRcvData) == true)
 		{
-			m_clientRcvData = tempBuffer;
+			// Обработка данных и сброс буфера по окончании
 		}
 	}
 }
@@ -299,7 +299,7 @@ void OsiTransportTest::prepare()
 	CClient* clt = new CClient(this);
 
 	srv->start();
-	QThread::msleep(500);
+	QThread::usleep(500);
 	clt->start();
 
 }
