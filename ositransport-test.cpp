@@ -174,7 +174,7 @@ void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
-//	(const_cast<CConnection*>(pconn))->listenForCR();
+	(const_cast<CConnection*>(pconn))->listenForCR();
 
 	checkServerConnected = true;
 }
