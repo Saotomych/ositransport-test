@@ -213,10 +213,11 @@ void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
 
 }
 
-void OsiTransportTest::slotServerCRReady(const CConnection*)
+void OsiTransportTest::slotServerCRReady(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerCRReady";
 
+	pconn->asyncReadWriteInit();
 }
 
 void OsiTransportTest::slotServerIOError(QString str)
@@ -227,17 +228,17 @@ void OsiTransportTest::slotServerIOError(QString str)
 }
 
 // client slots
-void OsiTransportTest::slotConnectionReady(const CConnection* that)
+void OsiTransportTest::slotConnectionReady(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotConnectionReady";
 
-	checkClientConnected = true;
+	pconn->asyncReadWriteInit();
 
-	CConnection* myconn = const_cast<CConnection*>(that);
+	checkClientConnected = true;
 
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
-	pTest->sendTestData(myconn);
+	pTest->sendTestData( const_cast<CConnection*>(pconn) );
 }
 
 void OsiTransportTest::slotConnectionClosed(const CConnection*)
