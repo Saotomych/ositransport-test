@@ -42,65 +42,59 @@ const char OsiTransportTest::testData[] = {
 
 void OsiTransportTest::startServer()
 {
-	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-	pTest->checkServerConnected = false;
-	pTest->checkServerTransportConnected = false;
-	pTest->checkServerErrorConnected = false;
-	pTest->checkServerErrorTransfer = false;
-	pTest->checkIllegalArg = false;
-	pTest->checkIllegalClassMbr = false;
+	checkServerConnected = false;
+	checkServerTransportConnected = false;
+	checkServerErrorConnected = false;
+	checkServerErrorTransfer = false;
+	checkIllegalArg = false;
+	checkIllegalClassMbr = false;
 
 	// Create server and start listening
 	qint32 port = 18982;
-	pTest->pServer = new CServerTSAP(port);
-	pTest->pServer->setMessageTimeout(500);
-	pTest->pServer->setMessageFragmentTimeout(500);
-	pTest->pConnectionListener = pTest->pServer->createServer();
+	pServer = new CServerTSAP(port);
+	pServer->setMessageTimeout(500);
+	pServer->setMessageFragmentTimeout(500);
+	pConnectionListener = pServer->createServer();
 
 	// server slots
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalConnected(const CConnection*)), pTest, SLOT(slotServerClientConnected(const CConnection*)));
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalDisconnected(const CConnection*)), pTest, SLOT(slotServerClientDisconnected(const CConnection*)));
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotServerTSduReady(const CConnection*)));
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalCRReady(const CConnection*)), pTest, SLOT(slotServerCRReady(const CConnection*)));
-	pTest->connect(pTest->pConnectionListener, SIGNAL(signalIOError(QString)), pTest, SLOT(slotServerIOError(QString)));
+	connect(pConnectionListener, SIGNAL(signalConnected(const CConnection*)), this, SLOT(slotServerClientConnected(const CConnection*)));
+	connect(pConnectionListener, SIGNAL(signalDisconnected(const CConnection*)), this, SLOT(slotServerClientDisconnected(const CConnection*)));
+	connect(pConnectionListener, SIGNAL(signalTSduReady(const CConnection*)), this, SLOT(slotServerTSduReady(const CConnection*)));
+	connect(pConnectionListener, SIGNAL(signalCRReady(const CConnection*)), this, SLOT(slotServerCRReady(const CConnection*)));
+	connect(pConnectionListener, SIGNAL(signalIOError(QString)), this, SLOT(slotServerIOError(QString)));
 
-	pTest->pServer->startListening();
+	pServer->startListening();
 
 }
 
 void OsiTransportTest::startClient()
 {
-	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-	pTest->checkClientConnected = false;
-	pTest->checkClientErrorConnected = false;
-	pTest->checkClientErrorTransfer = false;
+	checkClientConnected = false;
+	checkClientErrorConnected = false;
+	checkClientErrorTransfer = false;
 
 	// Create client and start connection
-	pTest->pClient = new CClientTSAP(*CSocketFactory::getSocketFactory());
+	pClient = new CClientTSAP(*CSocketFactory::getSocketFactory());
 
 	// client's error slots
-	pTest->connect(pTest->pClient, SIGNAL(signalIllegalArgument(QString)), pTest, SLOT(slotIllegalArgument(QString)));
-	pTest->connect(pTest->pClient, SIGNAL(signalConnectError(QString)), pTest, SLOT(slotConnectError(QString)));
-	pTest->connect(pTest->pClient, SIGNAL(signalIllegalClassMember(QString)), pTest, SLOT(slotIllegalClassMember(QString)));
+	connect(pClient, SIGNAL(signalIllegalArgument(QString)), this, SLOT(slotIllegalArgument(QString)));
+	connect(pClient, SIGNAL(signalConnectError(QString)), this, SLOT(slotConnectError(QString)));
+	connect(pClient, SIGNAL(signalIllegalClassMember(QString)), this, SLOT(slotIllegalClassMember(QString)));
 
-	pTest->pClient->setMaxTPDUSizeParam(7);
-	pTest->pClient->setMessageTimeout(5000);
-	pTest->pClient->setMessageFragmentTimeout(5000);
+	pClient->setMaxTPDUSizeParam(7);
+	pClient->setMessageTimeout(5000);
+	pClient->setMessageFragmentTimeout(5000);
 
 	QHostAddress address("127.0.0.1");
 	qint32 port = 18982;
 
-	pTest->pConnection = pTest->pClient->createConnection(address, port);
+	pConnection = pClient->createConnection(address, port);
 
 	// connection slots
-	pTest->pConnection->asyncReadWriteInit();
-
-	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionReady(const CConnection*)), pTest, SLOT(slotConnectionReady(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionClosed(const CConnection*)), pTest, SLOT(slotConnectionClosed(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotClientTSduReady(const CConnection*)));
-	pTest->connect(pTest->pConnection, SIGNAL(signalIOError(QString)), pTest, SLOT(slotClientIOError(QString)));
+	connect(pConnection, SIGNAL(signalConnectionReady(const CConnection*)), this, SLOT(slotConnectionReady(const CConnection*)));
+	connect(pConnection, SIGNAL(signalConnectionClosed(const CConnection*)), this, SLOT(slotConnectionClosed(const CConnection*)));
+	connect(pConnection, SIGNAL(signalTSduReady(const CConnection*)), this, SLOT(slotClientTSduReady(const CConnection*)));
+	connect(pConnection, SIGNAL(signalIOError(QString)), this, SLOT(slotClientIOError(QString)));
 
 	pConnection->startConnection();
 
@@ -173,7 +167,7 @@ void OsiTransportTest::Test3::runTest()
 }
 
 // server slots
-void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
+void OsiTransportTest::slotServerClientConnected(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
@@ -188,7 +182,7 @@ void OsiTransportTest::slotServerClientDisconnected(const CConnection*)
 	checkServerTransportConnected = false;
 }
 
-void OsiTransportTest::slotServerCRReady(const CConnection* pconn)
+void OsiTransportTest::slotServerCRReady(const CConnection*)
 {
 	qDebug() << "OsiTransportTest::slotServerCRReady";
 
@@ -217,9 +211,7 @@ void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
 				qDebug() << "OsiTransportTest::slotServerTSduReady: server data ready";
 
 				// Обработка данных и сброс буфера по окончании
-				OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-				pTest->sendTestData(myconn);
+				sendTestData(myconn);
 			}
 			else
 			{
@@ -243,9 +235,7 @@ void OsiTransportTest::slotConnectionReady(const CConnection* pconn)
 
 	checkClientConnected = true;
 
-	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-	pTest->sendTestData( const_cast<CConnection*>(pconn) );
+	sendTestData( const_cast<CConnection*>(pconn) );
 }
 
 void OsiTransportTest::slotConnectionClosed(const CConnection*)
