@@ -57,6 +57,7 @@ public:
 	bool checkClientErrorTransfer;
 	bool checkServerErrorTransfer;
 	bool checkServerConnected;
+	bool checkServerTransportConnected;
 	bool checkServerErrorConnected;
 	bool checkIllegalArg;
 	bool checkIllegalClassMbr;

@@ -45,6 +45,7 @@ void OsiTransportTest::startServer()
 	OsiTransportTest* pTest = OsiTransportTest::getMainTest();
 
 	pTest->checkServerConnected = false;
+	pTest->checkServerTransportConnected = false;
 	pTest->checkServerErrorConnected = false;
 	pTest->checkServerErrorTransfer = false;
 	pTest->checkIllegalArg = false;
@@ -94,6 +95,8 @@ void OsiTransportTest::startClient()
 	pTest->pConnection = pTest->pClient->createConnection(address, port);
 
 	// connection slots
+	pTest->pConnection->asyncReadWriteInit();
+
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionReady(const CConnection*)), pTest, SLOT(slotConnectionReady(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalConnectionClosed(const CConnection*)), pTest, SLOT(slotConnectionClosed(const CConnection*)));
 	pTest->connect(pTest->pConnection, SIGNAL(signalTSduReady(const CConnection*)), pTest, SLOT(slotClientTSduReady(const CConnection*)));
@@ -174,8 +177,6 @@ void OsiTransportTest::slotServerClientConnected(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerClientConnected";
 
-	(const_cast<CConnection*>(pconn))->listenForCR();
-
 	checkServerConnected = true;
 }
 
@@ -184,40 +185,48 @@ void OsiTransportTest::slotServerClientDisconnected(const CConnection*)
 	qDebug() << "OsiTransportTest::slotServerClientDisconnected";
 
 	checkServerConnected = false;
-}
-
-void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
-{
-
-	qDebug() << "OsiTransportTest::slotServerTSduReady, checkServerConnected = " << checkServerConnected;
-
-	if (checkServerConnected)
-	{
-
-		CConnection* myconn = const_cast<CConnection*>(pConnection);
-
-		if ( myconn->receive(m_serverRcvData) == true)
-		{
-			qDebug() << "OsiTransportTest::slotServerTSduReady: server data ready";
-
-			// Обработка данных и сброс буфера по окончании
-			OsiTransportTest* pTest = OsiTransportTest::getMainTest();
-
-			pTest->sendTestData(myconn);
-		}
-		else
-		{
-			qDebug() << "OsiTransportTest::slotServerTSduReady: server data is still not ready";
-		}
-	}
-
+	checkServerTransportConnected = false;
 }
 
 void OsiTransportTest::slotServerCRReady(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotServerCRReady";
 
-	pconn->asyncReadWriteInit();
+	checkServerTransportConnected = true;
+}
+
+void OsiTransportTest::slotServerTSduReady(const CConnection* pConnection)
+{
+
+	qDebug() << "OsiTransportTest::slotServerTSduReady, checkServerConnected = " << checkServerConnected
+			<< "; checkServerTransportConnected = " << checkServerTransportConnected;
+
+	if (checkServerConnected)
+	{
+		if (!checkServerTransportConnected)
+		{
+			(const_cast<CConnection*>(pConnection))->listenForCR();
+		}
+		else
+		{
+			// received data parsing
+			CConnection* myconn = const_cast<CConnection*>(pConnection);
+
+			if ( myconn->receive(m_serverRcvData) == true)
+			{
+				qDebug() << "OsiTransportTest::slotServerTSduReady: server data ready";
+
+				// Обработка данных и сброс буфера по окончании
+				OsiTransportTest* pTest = OsiTransportTest::getMainTest();
+
+				pTest->sendTestData(myconn);
+			}
+			else
+			{
+				qDebug() << "OsiTransportTest::slotServerTSduReady: server data is still not ready";
+			}
+		}
+	}
 }
 
 void OsiTransportTest::slotServerIOError(QString str)
@@ -231,8 +240,6 @@ void OsiTransportTest::slotServerIOError(QString str)
 void OsiTransportTest::slotConnectionReady(const CConnection* pconn)
 {
 	qDebug() << "OsiTransportTest::slotConnectionReady";
-
-	pconn->asyncReadWriteInit();
 
 	checkClientConnected = true;
 
@@ -248,14 +255,17 @@ void OsiTransportTest::slotConnectionClosed(const CConnection*)
 	checkClientConnected = false;
 }
 
-void OsiTransportTest::slotClientTSduReady(const CConnection* that)
+void OsiTransportTest::slotClientTSduReady(const CConnection* pconn)
 {
+	qDebug() << "OsiTransportTest::slotClientTSduReady";
 
-	if (checkClientConnected)
+	if (!checkClientConnected)
 	{
-		qDebug() << "OsiTransportTest::slotClientTSduReady";
-
-		if ( (const_cast<CConnection*>(that))->receive(m_clientRcvData) == true)
+		(const_cast<CConnection*>(pconn))->parseServerAnswer();
+	}
+	else
+	{
+		if ( (const_cast<CConnection*>(pconn))->receive(m_clientRcvData) == true)
 		{
 			// Обработка данных и сброс буфера по окончании
 		}
